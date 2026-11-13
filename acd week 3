@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+map<char, set<char>> F, W;   // F is FIRST, W is FOLLOW
+string G[] = {"E=TR", "R=+TR", "R=#", "T=FY", "Y=*FY", "Y=#", "F=(E)", "F=i"};
+
+// FIRST of a string; e becomes true if the whole string can vanish
+set<char> firstOf(string s, bool &e) {
+    set<char> r;
+    e = true;
+    for (char X : s) {
+        if (!e) break;
+        if (!isupper(X)) { r.insert(X); e = false; }
+        else { r.insert(F[X].begin(), F[X].end());
+ r.erase('#');
+ e = F[X].count('#'); }
+    }
+    return r;
+}
+
+int main() {
+    bool e, ch;
+    do {                                            // FIRST until nothing changes
+        ch = false;
+        for (string p : G) {
+            set<char> r = firstOf(p.substr(2), e);
+            if (e) r.insert('#');
+            for (char c : r) ch |= F[p[0]].insert(c).second;
+        }
+    } while (ch);
+
+    W['E'].insert('$');
+    do {                                            // FOLLOW until nothing changes
+        ch = false;
+        for (string p : G)
+            for (int k = 2; k < (int)p.size(); k++) {
+                if (!isupper(p[k])) continue;
+                set<char> r = firstOf(p.substr(k + 1), e);
+                if (e) r.insert(W[p[0]].begin(), W[p[0]].end());
+                for (char c : r) ch |= W[p[k]].insert(c).second;
+            }
+    } while (ch);
+
+    for (char A : string("EFRTY")) {
+        cout << "FIRST(" << A << ") = { ";
+        for (char c : F[A]) cout << c << " ";
+        cout << "}\n";
+    }
+    cout << "\n";
+    for (char A : string("EFRTY")) {
+        cout << "FOLLOW(" << A << ") = { ";
+        for (char c : W[A]) cout << c << " ";
+        cout << "}\n";
+    }
+}
