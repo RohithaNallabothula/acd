@@ -1,0 +1,89 @@
+#include <iostream>
+#include <string>
+#include <stack>
+using namespace std;
+
+int main()
+{
+    string input;
+
+    cout << "Enter string using c and d: ";
+    cin >> input;
+
+    input += '$';
+
+    stack<char> st;
+    st.push('$');
+
+    int pos = 0;
+
+    while (true)
+    {
+        char a = input[pos];
+
+        // Reduce d -> C
+        if (st.top() == 'd')
+        {
+            st.pop();
+            st.push('C');
+        }
+
+        // Reduce cC -> C
+        else if (st.top() == 'C' && st.size() >= 3)
+        {
+            char temp = st.top();
+            st.pop();
+
+            if (st.top() == 'c')
+            {
+                st.pop();
+                st.push('C');
+            }
+            else
+            {
+                st.push(temp);
+
+                // Reduce CC -> S
+                if (st.top() == 'C')
+                {
+                    st.pop();
+
+                    if (st.top() == 'C')
+                    {
+                        st.pop();
+                        st.push('S');
+                    }
+                    else
+                    {
+                        cout << "Invalid String";
+                        return 0;
+                    }
+                }
+            }
+        }
+
+        // Shift operation
+        else if (a == 'c' || a == 'd')
+        {
+            st.push(a);
+            pos++;
+        }
+
+        // Accept
+        else if (st.top() == 'S' && a == '$')
+        {
+            cout << "Valid String";
+            break;
+        }
+
+        else
+        {
+            cout << "Invalid String";
+            break;
+        }
+    }
+
+    return 0;
+}
+
+
