@@ -1,0 +1,110 @@
+
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+int isKeyword(char *s)
+{
+    const char *k[] = {
+        "int", "float", "char", "double", "if",
+        "else", "while", "for", "return", "void"
+    };
+
+    for (int i = 0; i < 10; i++)
+    {
+        if (strcmp(s, k[i]) == 0)
+            return 1;
+    }
+
+    return 0;
+}
+
+int main()
+{
+    FILE *fp = fopen("input.txt", "r");
+    int ch, nxt;
+    char lex[30];
+    int i;
+
+    if (fp == NULL)
+    {
+        printf("File not found!");
+        return 1;
+    }
+
+    while ((ch = fgetc(fp)) != EOF)
+    {
+        if (isspace(ch))
+            continue;
+
+        /* Single-line comments */
+        if (ch == '/')
+        {
+            nxt = fgetc(fp);
+
+            if (nxt == '/')
+            {
+                while ((ch = fgetc(fp)) != '\n' && ch != EOF);
+                continue;
+            }
+
+            ungetc(nxt, fp);
+        }
+
+        /* Identifier or Keyword */
+        if (isalpha(ch) || ch == '_')
+        {
+            i = 0;
+
+            do
+            {
+                if (i < 29)
+                    lex[i++] = ch;
+
+                ch = fgetc(fp);
+
+            } while (isalnum(ch) || ch == '_');
+
+            lex[i] = '\0';
+            ungetc(ch, fp);
+
+            printf("%-10s : %s\n", lex,
+                   isKeyword(lex) ? "Keyword" : "Identifier");
+        }
+
+        /* Number */
+        else if (isdigit(ch))
+        {
+            i = 0;
+
+            do
+            {
+                if (i < 29)
+                    lex[i++] = ch;
+
+                ch = fgetc(fp);
+
+            } while (isdigit(ch));
+
+            lex[i] = '\0';
+            ungetc(ch, fp);
+
+            printf("%-10s : Number\n", lex);
+        }
+
+        /* Operators */
+        else if (strchr("=+-/*^", ch))
+        {
+            printf("%-10c : Operator\n", ch);
+        }
+
+        /* Delimiters */
+        else if (strchr(";,{}()[]", ch))
+        {
+            printf("%-10c : Delimiter\n", ch);
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}
