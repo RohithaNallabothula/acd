@@ -1,0 +1,123 @@
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <cctype>
+using namespace std;
+
+string s;
+int pos = 0, temp = 0;
+vector<string> code;
+
+string newTemp()
+{
+    return "t" + to_string(++temp);
+}
+
+string expression();
+
+string factor()
+{
+    if (pos < s.size() && s[pos] == '(')
+    {
+        pos++;
+        string x = expression();
+
+        if (pos < s.size() && s[pos] == ')')
+            pos++;
+
+        return x;
+    }
+
+    string x;
+
+    while (pos < s.size() &&
+           (isalnum((unsigned char)s[pos]) || s[pos] == '_'))
+    {
+        x += s[pos++];
+    }
+
+    return x;
+}
+
+string term()
+{
+    string x = factor();
+
+    while (pos < s.size() &&
+           (s[pos] == '*' || s[pos] == '/'))
+    {
+        char op = s[pos++];
+        string y = factor();
+
+        string t = newTemp();
+
+        code.push_back(t + " = " + x + " " + op + " " + y);
+        x = t;
+    }
+
+    return x;
+}
+
+string expression()
+{
+    string x = term();
+
+    while (pos < s.size() &&
+           (s[pos] == '+' || s[pos] == '-'))
+    {
+        char op = s[pos++];
+        string y = term();
+
+        string t = newTemp();
+
+        code.push_back(t + " = " + x + " " + op + " " + y);
+        x = t;
+    }
+
+    return x;
+}
+
+int main()
+{
+    cout << "Enter expression: ";
+    getline(cin, s);
+
+    string lhs;
+    int i = 0;
+
+    while (i < s.size() &&
+           (isalnum((unsigned char)s[i]) || s[i] == '_'))
+    {
+        lhs += s[i++];
+    }
+
+    if (lhs.empty() || i >= s.size() || s[i] != '=')
+    {
+        cout << "Invalid expression";
+        return 0;
+    }
+
+    s = s.substr(i + 1);
+    pos = 0;
+
+    string result = expression();
+
+    while (pos < s.size() && isspace((unsigned char)s[pos]))
+        pos++;
+
+    if (pos != s.size() || result.empty())
+    {
+        cout << "Invalid expression";
+        return 0;
+    }
+
+    code.push_back(lhs + " = " + result);
+
+    cout << "\nThree Address Code:\n";
+
+    for (string line : code)
+        cout << line << endl;
+
+    return 0;
+}
