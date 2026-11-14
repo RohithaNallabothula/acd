@@ -1,0 +1,144 @@
+
+#include <iostream>
+#include <string>
+#include <cctype>
+using namespace std;
+
+struct Node
+{
+    char data;
+    Node *left, *right;
+
+    Node(char ch)
+    {
+        data = ch;
+        left = right = NULL;
+    }
+};
+
+string s;
+int pos = 0, reg = 0;
+
+Node* expression();
+Node* term();
+Node* factor();
+
+Node* factor()
+{
+    if (s[pos] == '(')
+    {
+        pos++;
+        Node* x = expression();
+        pos++;
+        return x;
+    }
+
+    return new Node(s[pos++]);
+}
+
+Node* term()
+{
+    Node* x = factor();
+
+    while (pos < s.size() &&
+           (s[pos] == '*' || s[pos] == '/'))
+    {
+        char op = s[pos++];
+        Node* y = factor();
+
+        Node* t = new Node(op);
+        t->left = x;
+        t->right = y;
+
+        x = t;
+    }
+
+    return x;
+}
+
+Node* expression()
+{
+    Node* x = term();
+
+    while (pos < s.size() &&
+           (s[pos] == '+' || s[pos] == '-'))
+    {
+        char op = s[pos++];
+        Node* y = term();
+
+        Node* t = new Node(op);
+        t->left = x;
+        t->right = y;
+
+        x = t;
+    }
+
+    return x;
+}
+
+int generate(Node* root)
+{
+    if (root->left == NULL && root->right == NULL)
+    {
+        int r = reg++;
+        cout << "MOV R" << r << ", " << root->data << endl;
+        return r;
+    }
+
+    int r1 = generate(root->left);
+    int r2 = generate(root->right);
+
+    string op;
+
+    switch (root->data)
+    {
+        case '+': op = "ADD"; break;
+        case '-': op = "SUB"; break;
+        case '*': op = "MUL"; break;
+        case '/': op = "DIV"; break;
+    }
+
+    cout << op << " R" << r1 << ", R" << r2 << endl;
+
+    return r1;
+}
+
+int main()
+{
+    cout << "Enter expression: ";
+    getline(cin, s);
+
+    string lhs;
+    int i = 0;
+
+    while (i < s.size() &&
+           isalnum((unsigned char)s[i]))
+    {
+        lhs += s[i++];
+    }
+
+    if (lhs.empty() || i >= s.size() || s[i] != '=')
+    {
+        cout << "Invalid expression";
+        return 0;
+    }
+
+    s = s.substr(i + 1);
+    pos = 0;
+
+    Node* root = expression();
+
+    if (pos != s.size())
+    {
+        cout << "Invalid expression";
+        return 0;
+    }
+
+    cout << "\nMachine Code:\n";
+
+    int r = generate(root);
+
+    cout << "MOV " << lhs << ", R" << r << endl;
+
+    return 0;
+}
