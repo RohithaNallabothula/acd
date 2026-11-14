@@ -1,0 +1,131 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+string characterFraming(const string &data)
+{
+    return "FLAG " + data + " FLAG";
+}
+
+string characterDeframing(const string &frame)
+{
+    return frame.substr(5, frame.size() - 10);
+}
+
+const char FLAG_CHAR   = 'F';
+const char ESCAPE_CHAR = 'E';
+
+string characterStuffing(const string &data)
+{
+    string stuffed = "";
+
+    for (char ch : data)
+    {
+        if (ch == FLAG_CHAR || ch == ESCAPE_CHAR)
+        {
+            stuffed += ESCAPE_CHAR;
+        }
+        stuffed += ch;
+    }
+    return "F " + stuffed + " F";
+}
+
+string characterDestuffing(const string &frame)
+{
+    string stuffed = frame.substr(2, frame.size() - 4);
+    string original = "";
+
+    for (size_t i = 0; i < stuffed.size(); i++)
+    {
+        if (stuffed[i] == ESCAPE_CHAR)
+        {
+            i++;                     
+        }
+        original += stuffed[i];
+    }
+    return original;
+}
+
+string bitStuffing(const string &data)
+{
+    string stuffed = "";
+    int count = 0;
+
+    for (char bit : data)
+    {
+        stuffed += bit;
+
+        if (bit == '1')
+        {
+            count++;
+            if (count == 5)
+            {
+                stuffed += '0';
+                count = 0;
+            }
+        }
+        else
+        {
+            count = 0;
+        }
+    }
+    return "01111110 " + stuffed + " 01111110";
+}
+
+string bitDestuffing(const string &frame)
+{
+    string stuffed = frame.substr(9, frame.size() - 18);
+    string original = "";
+    int count = 0;
+
+    for (size_t i = 0; i < stuffed.size(); i++)
+    {
+        original += stuffed[i];
+
+        if (stuffed[i] == '1')
+        {
+            count++;
+
+            if (count == 5)
+            {
+                i++;
+                count = 0;
+            }
+        }
+        else
+        {
+            count = 0;
+        }
+    }
+    return original;
+}
+
+int main()
+{
+    string charData;
+    string bitData;
+
+    cout << "Enter character data: ";
+    cin >> charData;
+
+    cout << "Enter binary data: ";
+    cin >> bitData;
+
+    cout << "\n--- Framing Results (Sender) ---\n";
+
+    string framedChars  = characterFraming(charData);
+    string stuffedChars = characterStuffing(charData);
+    string stuffedBits  = bitStuffing(bitData);
+
+    cout << "Character Framing  : " << framedChars  << endl;
+    cout << "Character Stuffing : " << stuffedChars << endl;
+    cout << "Bit Stuffing       : " << stuffedBits  << endl;
+
+    cout << "\n--- Deframing Results (Receiver) ---\n";
+
+    cout << "Character Deframing  : " << characterDeframing(framedChars)    << endl;
+    cout << "Character Destuffing : " << characterDestuffing(stuffedChars)  << endl;
+    cout << "Bit Destuffing       : " << bitDestuffing(stuffedBits)         << endl;
+
+    return 0;
+}
