@@ -1,0 +1,69 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+// Convert characters to 8-bit binary
+string toBinary(string s) {
+    string bin = "";
+    for (char c : s) {
+        for (int i = 7; i >= 0; i--) {
+            bin += ((c >> i) & 1) ? '1' : '0';
+        }
+    }
+    return bin;
+}
+
+// Calculate CRC using XOR division
+string calculateCRC(string data, string poly) {
+    int n = poly.length();
+    // Append n-1 zeros
+    string temp = data + string(n - 1, '0');
+
+    // Modulo-2 XOR division
+    for (int i = 0; i <= temp.length() - n; i++) {
+        if (temp[i] == '1') {
+            for (int j = 0; j < n; j++) {
+                temp[i + j] = (temp[i + j] == poly[j]) ? '0' : '1';
+            }
+        }
+    }
+
+    // Last n-1 bits are the CRC remainder
+    return temp.substr(temp.length() - n + 1);
+}
+
+int main() {
+    string str;
+    cout << "Enter a string: ";
+    cin >> str;
+
+    // Convert string to binary
+    string data = toBinary(str);
+    cout << "\nBinary Data: " << data << endl;
+
+    // Standard CRC generator polynomials
+    string crc12  = "1100000001111";      // 13 bits (x^12 + x^11 + x^3 + x^2 + x + 1)
+    string crc16  = "11000000000000101";  // 17 bits (x^16 + x^15 + x^2 + 1)
+    string ccitt  = "10001000000100001";  // 17 bits (x^16 + x^12 + x^5 + 1)
+
+    // Calculate remainders
+    string r12    = calculateCRC(data, crc12);
+    string r16    = calculateCRC(data, crc16);
+    string rccitt = calculateCRC(data, ccitt);
+
+    cout << "\nCRC-12    : " << r12;
+    cout << "\nCRC-16    : " << r16;
+    cout << "\nCRC-CCITT : " << rccitt;
+
+    // Transmitted data (Original binary data + CRC remainder)
+    cout << "\n\nTransmitted Data:";
+    cout << "\nCRC-12    : " << data + r12;
+    cout << "\nCRC-16    : " << data + r16;
+    cout << "\nCRC-CCITT : " << data + rccitt << endl;
+
+    return 0;
+}
+
+
+
